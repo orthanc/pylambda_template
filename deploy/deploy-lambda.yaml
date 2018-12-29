@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - assert:
+        that: "lambda_name is defined and lambda_name|length > 0"
+    - assert:
+        that: "source_bucket is defined and source_bucket|length > 0"
+    - assert:
+        that: "source_key is defined and source_key|length > 0"
+    - assert:
+        that: "handler is defined and handler|length > 0"
+    - cloudformation:
+        stack_name: "{{ lambda_name }}Lambda"
+        state: present
+        template: cloudformation/lambda.yaml
+        template_parameters:
+          LambdaName: "{{ lambda_name }}"
+          SourceBucket: "{{ source_bucket }}"
+          SourceKey: "{{ source_key }}"
+          Handler: "{{ handler }}"
