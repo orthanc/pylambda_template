@@ -6,4 +6,4 @@ logger.setLevel(logging.INFO)
 
 
 def handle_event(event, context):
-    logger.info('Recieved Event: ' + json.dumps(event) + ' with context ' + json.dumps(context))
+    logger.info('Recieved Event: ' + json.dumps(event))
