@@ -3,6 +3,19 @@ This project is a template for python based lambda functions.
 Tools and Concepts
 ==================
 
+Executing
+---------
+
+The source files live in src.
+
+These have to be executed as a module rather than a script so they can find other modules in src.
+
+So that you don't have to be in source, add src to the PYTHONPATH. E.g
+
+    PYTHONPATH=src python -m ocoen.example
+
+to make this work with pipenv add the PYTHONPATH to the .env file
+
 Dependency Management
 ---------------------
 
