@@ -63,7 +63,11 @@ Resources:
         Type: LINUX_CONTAINER
       Source:
         Type: GITHUB
+        Auth:
+          Type: OAUTH
         Location: !Ref SourceRepoUrl
+      Triggers:
+        Webhook: True
       ServiceRole: !Ref BuildRole
 
 Outputs:
