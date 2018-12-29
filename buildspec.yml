@@ -8,6 +8,7 @@ phases:
       - pip install pipenv
   build:
     commands:
+      - pipenv sync -d
       - pipenv run flake8 src test
       - pipenv run pytest test
   post_build:
