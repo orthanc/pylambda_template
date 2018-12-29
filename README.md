@@ -37,3 +37,9 @@ To build the lambda distro:
     pipenv run pip install --target build -r <(pipenv lock -r)
     cp -r src/* build/
     (cd build && zip -r ../dist.zip *)
+
+Running Tests
+-------------
+
+    pipenv run flake8 src test
+    pipenv run pytest test
