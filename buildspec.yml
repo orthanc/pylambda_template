@@ -14,7 +14,8 @@ phases:
   post_build:
     commands:
       - rm  -rf dist
-      - pipenv run pip install --target dist -r <(pipenv lock -r)
+      - pipenv lock -r > requirements.txt
+      - pipenv run pip install --target dist -r requirements.txt
       - cp -r src/* dist/
 artifacts:
   base-directory: dist
