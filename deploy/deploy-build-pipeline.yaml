@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - assert:
+        that: "project_name is defined and project_name|length > 0"
+    - assert:
+        that: "source_repo_url is defined and source_repo_url|length > 0"
+    - assert:
+        that: "output_bucket is defined and output_bucket|length > 0"
+    - cloudformation:
+        stack_name: "{{ project_name }}Build"
+        state: present
+        template: cloudformation/build_pipeline.yaml
+        template_parameters:
+          OutputBucket: "{{ output_bucket }}"
+          BuildName: "{{ project_name }}"
+          SourceRepoUrl: "{{ source_repo_url }}"

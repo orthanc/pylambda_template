@@ -1,0 +1,73 @@
+---
+Parameters:
+  OutputBucket:
+    Type: String
+  BuildName:
+    Type: String
+  SourceRepoUrl:
+    Type: String
+
+Resources:
+  BuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: CloudwatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildName}"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildName}:*"
+        - PolicyName: BuildBucket
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::${OutputBucket}"
+                  - !Sub "arn:aws:s3:::${OutputBucket}/*"
+
+  Build:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref BuildName
+      Artifacts:
+        Type: S3
+        Location: !Ref OutputBucket
+        Name: lambda.zip
+        Path: !Ref BuildName
+        Packaging: zip
+        NamespaceType: BUILD_ID
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:3.6.5
+        Type: LINUX_CONTAINER
+      Source:
+        Type: GITHUB
+        Location: !Ref SourceRepoUrl
+      ServiceRole: !Ref BuildRole
+
+Outputs:
+  Build:
+    Value: !Ref Build
+  BuildRole:
+    Value: !Ref BuildRole

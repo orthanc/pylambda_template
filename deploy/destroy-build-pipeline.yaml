@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - assert:
+        that: "project_name is defined and project_name|length > 0"
+    - cloudformation:
+        stack_name: "{{ project_name }}Build"
+        state: absent
+        template: cloudformation/build_pipeline.yaml
+        template_parameters:
+          OutputBucket:
+          BuildName: "{{ project_name }}"
+          SourceRepoUrl:
