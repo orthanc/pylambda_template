@@ -1,5 +1,9 @@
-import boto3
+import logging
+import json
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
-print('hello')
-print(boto3)
+def handle_event(event, context):
+    logger.info('Recieved Event: ' + json.dumps(event) + ' with context ' + json.dumps(context))
