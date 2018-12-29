@@ -27,3 +27,13 @@ to reuse the virtual env with pip env.
 
 
 pipenv --venv tells you the location of the virtual env, likely useful for latter packaging
+
+Building
+--------
+
+To build the lambda distro:
+
+    rm  -rf build dist.zip
+    pipenv run pip install --target build -r <(pipenv lock -r)
+    cp -r src/* build/
+    (cd build && zip -r ../dist.zip *)
