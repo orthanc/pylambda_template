@@ -50,8 +50,142 @@ Resources:
       Runtime: "python3.6"
       Timeout: 3
 
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt Lambda.Arn
+      Principal: apigateway.amazonaws.com
+      Action: lambda:InvokeFunction
+      SourceAccount: !Ref "AWS::AccountId"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:api-id/*"
+
+
+  ApiGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: CloudwatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*"
+        - PolicyName: InvokeLambda
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource:
+                  - "*"
+
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      ApiKeySourceType: HEADER
+      Name: !Sub "${LambdaName}API"
+
+  TestResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: test
+
+  TestMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TestResource
+      HttpMethod: GET
+      AuthorizationType: None
+      Integration:
+        Credentials: !GetAtt ApiGatewayRole.Arn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - { lambdaArn: !GetAtt Lambda.Arn }
+
+  TestParamResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: "{ex}"
+
+  TestParamMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TestParamResource
+      HttpMethod: ANY
+      AuthorizationType: None
+      Integration:
+        Credentials: !GetAtt ApiGatewayRole.Arn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - { lambdaArn: !GetAtt Lambda.Arn }
+
+  TestProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref TestResource
+      PathPart: "{proxy+}"
+
+  TestProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TestProxyResource
+      HttpMethod: ANY
+      AuthorizationType: None
+      Integration:
+        Credentials: !GetAtt ApiGatewayRole.Arn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - { lambdaArn: !GetAtt Lambda.Arn }
+
+
+#  TestDeploy:
+#    Type: AWS::ApiGateway::Deployment
+#    Properties:
+#      RestApiId: !Ref RestApi
+#
+#  BetaStage:
+#    Type: AWS::ApiGateway::Stage
+#    Properties:
+#      DeploymentId: !Ref TestDeploy
+#      RestApiId: !Ref RestApi
+#      StageName: beta
+
+
 Outputs:
   Build:
     Value: !Ref Lambda
   BuildRole:
     Value: !Ref LambdaRole
+  RestApi:
+    Value: !Ref RestApi
