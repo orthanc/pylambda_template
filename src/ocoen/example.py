@@ -13,6 +13,6 @@ def handle_event(event, context):
         "headers": {
             "x-custom-header": "my custom header value",
         },
-        "body": json.dumps(event)
+        "body": json.dumps(event, indent=4)
     }
     return response
